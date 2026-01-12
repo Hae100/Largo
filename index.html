@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>2026 영어 동아리 실시간 현황판</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getFirestore, doc, setDoc, onSnapshot, getDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+
+        // 환경 변수 설정 (시스템에서 제공)
+        const firebaseConfig = JSON.parse(__firebase_config);
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'english-study-club';
+        
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const auth = getAuth(app);
+
+        // 상태 관리
+        let studyData = {};
+        const members = ["팀원 A", "팀원 B", "팀원 C", "팀원 D"];
+
+        // 인증 및 데이터 리스너
+        async function init() {
+            await signInAnonymously(auth);
+            
+            // 실시간 데이터 구독
+            const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'progress');
+            onSnapshot(docRef, (docSnap) => {
+                if (docSnap.exists()) {
+                    studyData = docSnap.data();
+                } else {
+                    // 초기 데이터 구조 생성
+                    members.forEach(m => { studyData[m] = []; });
+                }
+                render();
+            }, (error) => console.error("데이터 로드 실패:", error));
+        }
+
+        // 화면 그리기 함수
+        function render() {
+            const container = document.getElementById('members-container');
+            container.innerHTML = '';
+            
+            members.forEach(name => {
+                const data = studyData[name] || [];
+                const filledCount = data.length;
+                
+                const card = document.createElement('div');
+                card.className = "bg-white p-5 rounded-xl border border-slate-200 shadow-sm";
+                
+                card.innerHTML = `
+                    <div class="flex items-center justify-between mb-3">
+                        <div class="flex items-center gap-3">
+                            <span class="font-bold text-lg text-slate-700">${name}</span>
+                            <span class="text-sm font-medium ${filledCount === 20 ? 'bg-green-500 text-white' : 'bg-blue-50 text-blue-600'} px-2 py-1 rounded-full">
+                                ${filledCount === 20 ? '🎉 완주!' : filledCount + '/20 완료'}
+                            </span>
+                        </div>
+                    </div>
+                    <div class="w-full bg-slate-100 h-2 rounded-full mb-4 overflow-hidden">
+                        <div class="bg-blue-500 h-full transition-all duration-500" style="width: ${(filledCount / 20) * 100}%"></div>
+                    </div>
+                    <div class="grid grid-cols-5 md:grid-cols-10 gap-2">
+                        ${Array.from({length: 20}).map((_, i) => {
+                            const dateValue = data[i] || '';
+                            const isFilled = !!dateValue;
+                            return `
+                                <div onclick="window.toggleSlot('${name}', ${i})" 
+                                     class="h-12 flex items-center justify-center border-2 rounded-lg cursor-pointer transition-all text-[10px] font-bold
+                                     ${isFilled ? 'bg-blue-500 border-blue-600 text-white' : 'bg-white border-slate-100 text-slate-300 hover:border-slate-300'}">
+                                    ${isFilled ? dateValue : i + 1}
+                                </div>
+                            `;
+                        }).join('')}
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        // 클릭 시 데이터 업데이트
+        window.toggleSlot = async (name, index) => {
+            const currentData = [...(studyData[name] || [])];
+            
+            if (currentData[index]) {
+                if (confirm("기록을 삭제할까요?")) {
+                    currentData.splice(index, 1);
+                }
+            } else {
+                const now = new Date();
+                const dateStr = `${now.getMonth() + 1}/${now.getDate()}`;
+                currentData.push(dateStr);
+            }
+
+            const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'progress');
+            await setDoc(docRef, { ...studyData, [name]: currentData });
+        };
+
+        window.onload = init;
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Pretendard:wght@400;600;700&display=swap');
+        body { font-family: 'Pretendard', sans-serif; background-color: #f1f5f9; }
+    </style>
+</head>
+<body class="p-4 md:p-8">
+    <div class="max-w-4xl mx-auto space-y-6">
+        <div class="bg-slate-800 p-8 rounded-2xl text-white text-center shadow-lg">
+            <h1 class="text-2xl font-bold mb-2">📚 2026 영어 동아리 실시간 기록부</h1>
+            <p class="text-slate-400 text-sm">누구나 자신의 칸을 클릭해 날짜를 기록할 수 있습니다.</p>
+        </div>
+
+        <div id="members-container" class="space-y-6">
+            <!-- 실시간 데이터 로드 중... -->
+            <div class="text-center py-20 text-slate-400">데이터를 불러오고 있습니다...</div>
+        </div>
+
+        <div class="bg-blue-50 border border-blue-100 p-5 rounded-xl text-sm text-blue-800">
+            <ul class="space-y-2">
+                <li>• <b>기록 방법:</b> 자신의 이름 아래 숫자를 누르면 오늘 날짜가 찍힙니다.</li>
+                <li>• <b>삭제 방법:</b> 입력된 날짜를 다시 누르면 삭제할 수 있습니다.</li>
+                <li>• <b>주의:</b> 다른 사람의 칸은 실수로 누르지 않도록 주의해주세요!</li>
+            </ul>
+        </div>
+    </div>
+</body>
+</html>
+
