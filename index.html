@@ -10,7 +10,6 @@
         import { getFirestore, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
         import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
 
-        // Firebase 설정
         const firebaseConfig = {
             apiKey: "AIzaSyAuRA-kNCfwiIxtbMz_moVtA-7Jm1sAYpE",
             authDomain: "largo-2026.firebaseapp.com",
@@ -24,41 +23,28 @@
         const db = getFirestore(app);
         const auth = getAuth(app);
 
-        // 상태 관리
         let studyData = {};
         const members = ["이성미", "황경혜", "김윤희", "백가희"];
 
-        // 인증 및 데이터 리스너
         async function init() {
             try {
                 await signInAnonymously(auth);
-                console.log("Firebase 인증 성공!");
-                
-                // 실시간 데이터 구독
                 const docRef = doc(db, 'club-progress', 'data');
                 onSnapshot(docRef, (docSnap) => {
                     if (docSnap.exists()) {
                         studyData = docSnap.data();
-                        console.log("데이터 로드됨:", studyData);
                     } else {
-                        // 초기 데이터 구조 생성
                         studyData = {};
                         members.forEach(m => { studyData[m] = []; });
-                        // 초기 데이터를 Firebase에 저장
                         setDoc(docRef, studyData);
                     }
                     render();
-                }, (error) => {
-                    console.error("데이터 로드 실패:", error);
-                    alert("데이터 로드에 실패했습니다. 페이지를 새로고침해주세요.");
                 });
             } catch (error) {
                 console.error("초기화 실패:", error);
-                alert("Firebase 연결에 실패했습니다. 인터넷 연결을 확인해주세요.");
             }
         }
 
-        // 화면 그리기 함수
         function render() {
             const container = document.getElementById('members-container');
             container.innerHTML = '';
@@ -68,33 +54,33 @@
                 const filledCount = data.length;
                 
                 const card = document.createElement('div');
-                card.className = "bg-white p-6 rounded-2xl border-2 border-pink-200 shadow-lg hover:shadow-xl transition-shadow";
+                card.className = "bg-white p-6 rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-all duration-300";
                 
                 card.innerHTML = `
-                    <div class="flex items-center justify-between mb-4">
+                    <div class="flex items-center justify-between mb-5">
                         <div class="flex items-center gap-3">
-                            <span class="font-bold text-xl text-rose-700">🌸 ${name}</span>
-                            <span class="text-sm font-bold ${filledCount === 15 ? 'bg-gradient-to-r from-pink-400 to-rose-400 text-white' : 'bg-gradient-to-r from-green-100 to-lime-100 text-green-700'} px-3 py-1.5 rounded-full shadow-sm">
-                                ${filledCount === 15 ? '🎉 완주!' : filledCount + '/15 완료'}
+                            <span class="font-bold text-lg text-slate-700">${name}</span>
+                            <span class="text-[11px] font-semibold ${filledCount === 15 ? 'bg-blue-100 text-blue-600' : 'bg-slate-100 text-slate-500'} px-2.5 py-1 rounded-md uppercase tracking-wider">
+                                ${filledCount === 15 ? 'Completed' : filledCount + ' / 15'}
                             </span>
                         </div>
                     </div>
-                    <div class="w-full bg-gradient-to-r from-pink-100 to-yellow-100 h-3 rounded-full mb-5 overflow-hidden shadow-inner">
-                        <div class="bg-gradient-to-r from-pink-400 via-rose-400 to-yellow-400 h-full transition-all duration-500 rounded-full" style="width: ${(filledCount / 15) * 100}%"></div>
+                    <div class="w-full bg-slate-100 h-2 rounded-full mb-6 overflow-hidden">
+                        <div class="bg-blue-300 h-full transition-all duration-700 ease-out rounded-full" style="width: ${(filledCount / 15) * 100}%"></div>
                     </div>
-                    <div class="grid grid-cols-5 gap-3">
+                    <div class="grid grid-cols-5 gap-2.5">
                         ${Array.from({length: 15}).map((_, i) => {
                             const dateValue = data[i] || '';
                             const isFilled = !!dateValue;
                             return `
                                 <div onclick="toggleSlot('${name}', ${i})" 
-                                     class="h-14 flex flex-col items-center justify-center border-2 rounded-xl cursor-pointer transition-all text-xs font-bold shadow-sm
+                                     class="h-12 flex flex-col items-center justify-center border rounded-lg cursor-pointer transition-all duration-200 text-xs
                                      ${isFilled 
-                                         ? 'bg-gradient-to-br from-pink-400 to-rose-400 border-pink-500 text-white shadow-md transform scale-105' 
-                                         : 'bg-gradient-to-br from-white to-pink-50 border-pink-200 text-pink-300 hover:border-pink-400 hover:shadow-md hover:scale-105'}">
+                                         ? 'bg-blue-50 border-blue-200 text-blue-500 font-bold' 
+                                         : 'bg-white border-slate-100 text-slate-300 hover:border-blue-200 hover:bg-slate-50'}">
                                     ${isFilled 
-                                        ? `<span class="text-[10px] opacity-80">✓</span><span class="text-[9px] mt-0.5">${dateValue}</span>` 
-                                        : `<span class="text-lg">${i + 1}</span>`}
+                                        ? `<span class="text-[10px] font-medium">${dateValue}</span>` 
+                                        : `<span>${i + 1}</span>`}
                                 </div>
                             `;
                         }).join('')}
@@ -104,23 +90,17 @@
             });
         }
 
-        // 클릭 시 데이터 업데이트
         window.toggleSlot = async (name, index) => {
             const currentData = [...(studyData[name] || [])];
-            
             if (currentData[index]) {
-                // 이미 채워진 칸 - 삭제
                 if (confirm("기록을 삭제할까요?")) {
                     currentData.splice(index, 1);
                 }
             } else {
-                // 빈 칸 - 날짜 기록
                 const now = new Date();
-                const dateStr = `${now.getMonth() + 1}/${now.getDate()}`;
+                const dateStr = `${now.getMonth() + 1}.${now.getDate()}`;
                 currentData.push(dateStr);
             }
-
-            // Firebase에 저장
             const docRef = doc(db, 'club-progress', 'data');
             await setDoc(docRef, { ...studyData, [name]: currentData });
         };
@@ -128,65 +108,37 @@
         window.onload = init;
     </script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Pretendard:wght@400;600;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
         body { 
-            font-family: 'Pretendard', sans-serif; 
-            background: linear-gradient(135deg, #fef3f5 0%, #fff9e6 50%, #f0fdf4 100%);
-            min-height: 100vh;
-        }
-        
-        @keyframes float {
-            0%, 100% { transform: translateY(0px); }
-            50% { transform: translateY(-10px); }
-        }
-        
-        .float-animation {
-            animation: float 3s ease-in-out infinite;
+            font-family: 'Inter', 'Pretendard', sans-serif; 
+            background-color: #f8fafc;
+            color: #334155;
         }
     </style>
 </head>
-<body class="p-4 md:p-8">
-    <div class="max-w-5xl mx-auto space-y-8">
-        <!-- 헤더 -->
-        <div class="bg-gradient-to-r from-pink-400 via-rose-400 to-yellow-400 p-8 rounded-3xl text-white text-center shadow-2xl border-4 border-white">
-            <div class="float-animation inline-block mb-3">
-                <span class="text-5xl">🌸</span>
-            </div>
-            <h1 class="text-3xl font-bold mb-3 drop-shadow-lg">2026 영어 동아리 성장 기록부</h1>
-            <p class="text-pink-50 text-sm font-medium">봄처럼 피어나는 우리의 성장, 함께 기록해요! 🌷</p>
+<body class="p-6 md:p-12">
+    <div class="max-w-4xl mx-auto space-y-10">
+        <div class="text-center space-y-2">
+            <h1 class="text-2xl font-bold text-slate-800 tracking-tight">2026 English Club</h1>
+            <p class="text-slate-400 text-sm">성장 기록을 실시간으로 확인하세요.</p>
         </div>
 
-        <!-- 멤버 카드 -->
-        <div id="members-container" class="space-y-6">
-            <!-- 실시간 데이터 로드 중... -->
-            <div class="text-center py-20">
-                <div class="inline-block animate-spin text-4xl mb-4">🌼</div>
-                <p class="text-rose-400 font-medium">데이터를 불러오고 있습니다...</p>
+        <div id="members-container" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div class="col-span-full text-center py-20 text-slate-400 text-sm">
+                데이터를 연결 중입니다...
             </div>
         </div>
 
-        <!-- 안내 -->
-        <div class="bg-gradient-to-br from-green-50 to-lime-50 border-2 border-green-200 p-6 rounded-2xl text-sm text-green-800 shadow-lg">
-            <h3 class="font-bold text-base mb-3 text-green-700">📝 사용 방법</h3>
-            <ul class="space-y-2">
-                <li class="flex items-start gap-2">
-                    <span class="text-green-500 font-bold">✓</span>
-                    <span><b>기록 방법:</b> 자신의 이름 아래 숫자를 누르면 오늘 날짜가 찍힙니다.</span>
-                </li>
-                <li class="flex items-start gap-2">
-                    <span class="text-green-500 font-bold">✓</span>
-                    <span><b>삭제 방법:</b> 입력된 날짜를 다시 누르면 삭제할 수 있습니다.</span>
-                </li>
-                <li class="flex items-start gap-2">
-                    <span class="text-rose-500 font-bold">⚠</span>
-                    <span><b>주의:</b> 다른 사람의 칸은 실수로 누르지 않도록 주의해주세요!</span>
-                </li>
+        <div class="bg-white border border-slate-100 p-6 rounded-2xl shadow-sm">
+            <h3 class="font-semibold text-sm mb-3 text-slate-700 italic">Guide</h3>
+            <ul class="text-xs text-slate-500 space-y-1.5">
+                <li>• 숫자를 클릭하면 오늘 날짜가 기록됩니다.</li>
+                <li>• 기록된 날짜를 클릭하면 삭제할 수 있습니다.</li>
             </ul>
         </div>
 
-        <!-- 푸터 -->
-        <div class="text-center text-pink-400 text-sm py-4">
-            <p>🌺 함께 성장하는 우리, 파이팅! 🌺</p>
+        <div class="text-center text-slate-300 text-[10px] uppercase tracking-widest">
+            © 2026 Largo English Club
         </div>
     </div>
 </body>
