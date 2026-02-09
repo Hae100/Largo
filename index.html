@@ -6,13 +6,19 @@
     <title>2026 영어 동아리 실시간 현황판</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getFirestore, doc, setDoc, onSnapshot, getDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-        import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
+        import { getFirestore, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
+        import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
 
-        // 환경 변수 설정 (시스템에서 제공)
-        const firebaseConfig = JSON.parse(__firebase_config);
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'english-study-club';
+        // Firebase 설정
+        const firebaseConfig = {
+            apiKey: "AIzaSyAuRA-kNCfwiIxtbMz_moVtA-7Jm1sAYpE",
+            authDomain: "largo-2026.firebaseapp.com",
+            projectId: "largo-2026",
+            storageBucket: "largo-2026.firebasestorage.app",
+            messagingSenderId: "598325400796",
+            appId: "1:598325400796:web:aa773b6c98bed4a4141019"
+        };
         
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
@@ -24,19 +30,32 @@
 
         // 인증 및 데이터 리스너
         async function init() {
-            await signInAnonymously(auth);
-            
-            // 실시간 데이터 구독
-            const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'progress');
-            onSnapshot(docRef, (docSnap) => {
-                if (docSnap.exists()) {
-                    studyData = docSnap.data();
-                } else {
-                    // 초기 데이터 구조 생성
-                    members.forEach(m => { studyData[m] = []; });
-                }
-                render();
-            }, (error) => console.error("데이터 로드 실패:", error));
+            try {
+                await signInAnonymously(auth);
+                console.log("Firebase 인증 성공!");
+                
+                // 실시간 데이터 구독
+                const docRef = doc(db, 'club-progress', 'data');
+                onSnapshot(docRef, (docSnap) => {
+                    if (docSnap.exists()) {
+                        studyData = docSnap.data();
+                        console.log("데이터 로드됨:", studyData);
+                    } else {
+                        // 초기 데이터 구조 생성
+                        studyData = {};
+                        members.forEach(m => { studyData[m] = []; });
+                        // 초기 데이터를 Firebase에 저장
+                        setDoc(docRef, studyData);
+                    }
+                    render();
+                }, (error) => {
+                    console.error("데이터 로드 실패:", error);
+                    alert("데이터 로드에 실패했습니다. 페이지를 새로고침해주세요.");
+                });
+            } catch (error) {
+                console.error("초기화 실패:", error);
+                alert("Firebase 연결에 실패했습니다. 인터넷 연결을 확인해주세요.");
+            }
         }
 
         // 화면 그리기 함수
@@ -68,7 +87,7 @@
                             const dateValue = data[i] || '';
                             const isFilled = !!dateValue;
                             return `
-                                <div onclick="window.toggleSlot('${name}', ${i})" 
+                                <div onclick="toggleSlot('${name}', ${i})" 
                                      class="h-14 flex flex-col items-center justify-center border-2 rounded-xl cursor-pointer transition-all text-xs font-bold shadow-sm
                                      ${isFilled 
                                          ? 'bg-gradient-to-br from-pink-400 to-rose-400 border-pink-500 text-white shadow-md transform scale-105' 
@@ -90,16 +109,19 @@
             const currentData = [...(studyData[name] || [])];
             
             if (currentData[index]) {
+                // 이미 채워진 칸 - 삭제
                 if (confirm("기록을 삭제할까요?")) {
                     currentData.splice(index, 1);
                 }
             } else {
+                // 빈 칸 - 날짜 기록
                 const now = new Date();
                 const dateStr = `${now.getMonth() + 1}/${now.getDate()}`;
                 currentData.push(dateStr);
             }
 
-            const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'progress');
+            // Firebase에 저장
+            const docRef = doc(db, 'club-progress', 'data');
             await setDoc(docRef, { ...studyData, [name]: currentData });
         };
 
