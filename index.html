@@ -49,29 +49,33 @@
                 const filledCount = data.length;
                 
                 const card = document.createElement('div');
-                card.className = "bg-white p-5 rounded-xl border border-slate-200 shadow-sm";
+                card.className = "bg-white p-6 rounded-2xl border-2 border-pink-200 shadow-lg hover:shadow-xl transition-shadow";
                 
                 card.innerHTML = `
-                    <div class="flex items-center justify-between mb-3">
+                    <div class="flex items-center justify-between mb-4">
                         <div class="flex items-center gap-3">
-                            <span class="font-bold text-lg text-slate-700">${name}</span>
-                            <span class="text-sm font-medium ${filledCount === 20 ? 'bg-green-500 text-white' : 'bg-blue-50 text-blue-600'} px-2 py-1 rounded-full">
-                                ${filledCount === 20 ? '🎉 완주!' : filledCount + '/20 완료'}
+                            <span class="font-bold text-xl text-rose-700">🌸 ${name}</span>
+                            <span class="text-sm font-bold ${filledCount === 15 ? 'bg-gradient-to-r from-pink-400 to-rose-400 text-white' : 'bg-gradient-to-r from-green-100 to-lime-100 text-green-700'} px-3 py-1.5 rounded-full shadow-sm">
+                                ${filledCount === 15 ? '🎉 완주!' : filledCount + '/15 완료'}
                             </span>
                         </div>
                     </div>
-                    <div class="w-full bg-slate-100 h-2 rounded-full mb-4 overflow-hidden">
-                        <div class="bg-blue-500 h-full transition-all duration-500" style="width: ${(filledCount / 20) * 100}%"></div>
+                    <div class="w-full bg-gradient-to-r from-pink-100 to-yellow-100 h-3 rounded-full mb-5 overflow-hidden shadow-inner">
+                        <div class="bg-gradient-to-r from-pink-400 via-rose-400 to-yellow-400 h-full transition-all duration-500 rounded-full" style="width: ${(filledCount / 15) * 100}%"></div>
                     </div>
-                    <div class="grid grid-cols-5 md:grid-cols-10 gap-2">
-                        ${Array.from({length: 20}).map((_, i) => {
+                    <div class="grid grid-cols-5 gap-3">
+                        ${Array.from({length: 15}).map((_, i) => {
                             const dateValue = data[i] || '';
                             const isFilled = !!dateValue;
                             return `
                                 <div onclick="window.toggleSlot('${name}', ${i})" 
-                                     class="h-12 flex items-center justify-center border-2 rounded-lg cursor-pointer transition-all text-[10px] font-bold
-                                     ${isFilled ? 'bg-blue-500 border-blue-600 text-white' : 'bg-white border-slate-100 text-slate-300 hover:border-slate-300'}">
-                                    ${isFilled ? dateValue : i + 1}
+                                     class="h-14 flex flex-col items-center justify-center border-2 rounded-xl cursor-pointer transition-all text-xs font-bold shadow-sm
+                                     ${isFilled 
+                                         ? 'bg-gradient-to-br from-pink-400 to-rose-400 border-pink-500 text-white shadow-md transform scale-105' 
+                                         : 'bg-gradient-to-br from-white to-pink-50 border-pink-200 text-pink-300 hover:border-pink-400 hover:shadow-md hover:scale-105'}">
+                                    ${isFilled 
+                                        ? `<span class="text-[10px] opacity-80">✓</span><span class="text-[9px] mt-0.5">${dateValue}</span>` 
+                                        : `<span class="text-lg">${i + 1}</span>`}
                                 </div>
                             `;
                         }).join('')}
@@ -103,30 +107,65 @@
     </script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Pretendard:wght@400;600;700&display=swap');
-        body { font-family: 'Pretendard', sans-serif; background-color: #f1f5f9; }
+        body { 
+            font-family: 'Pretendard', sans-serif; 
+            background: linear-gradient(135deg, #fef3f5 0%, #fff9e6 50%, #f0fdf4 100%);
+            min-height: 100vh;
+        }
+        
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+        }
+        
+        .float-animation {
+            animation: float 3s ease-in-out infinite;
+        }
     </style>
 </head>
 <body class="p-4 md:p-8">
-    <div class="max-w-4xl mx-auto space-y-6">
-        <div class="bg-slate-800 p-8 rounded-2xl text-white text-center shadow-lg">
-            <h1 class="text-2xl font-bold mb-2">📚 2026 영어 동아리 실시간 기록부</h1>
-            <p class="text-slate-400 text-sm">누구나 자신의 칸을 클릭해 날짜를 기록할 수 있습니다.</p>
+    <div class="max-w-5xl mx-auto space-y-8">
+        <!-- 헤더 -->
+        <div class="bg-gradient-to-r from-pink-400 via-rose-400 to-yellow-400 p-8 rounded-3xl text-white text-center shadow-2xl border-4 border-white">
+            <div class="float-animation inline-block mb-3">
+                <span class="text-5xl">🌸</span>
+            </div>
+            <h1 class="text-3xl font-bold mb-3 drop-shadow-lg">2026 영어 동아리 성장 기록부</h1>
+            <p class="text-pink-50 text-sm font-medium">봄처럼 피어나는 우리의 성장, 함께 기록해요! 🌷</p>
         </div>
 
+        <!-- 멤버 카드 -->
         <div id="members-container" class="space-y-6">
             <!-- 실시간 데이터 로드 중... -->
-            <div class="text-center py-20 text-slate-400">데이터를 불러오고 있습니다...</div>
+            <div class="text-center py-20">
+                <div class="inline-block animate-spin text-4xl mb-4">🌼</div>
+                <p class="text-rose-400 font-medium">데이터를 불러오고 있습니다...</p>
+            </div>
         </div>
 
-        <div class="bg-blue-50 border border-blue-100 p-5 rounded-xl text-sm text-blue-800">
+        <!-- 안내 -->
+        <div class="bg-gradient-to-br from-green-50 to-lime-50 border-2 border-green-200 p-6 rounded-2xl text-sm text-green-800 shadow-lg">
+            <h3 class="font-bold text-base mb-3 text-green-700">📝 사용 방법</h3>
             <ul class="space-y-2">
-                <li>• <b>기록 방법:</b> 자신의 이름 아래 숫자를 누르면 오늘 날짜가 찍힙니다.</li>
-                <li>• <b>삭제 방법:</b> 입력된 날짜를 다시 누르면 삭제할 수 있습니다.</li>
-                <li>• <b>주의:</b> 다른 사람의 칸은 실수로 누르지 않도록 주의해주세요!</li>
+                <li class="flex items-start gap-2">
+                    <span class="text-green-500 font-bold">✓</span>
+                    <span><b>기록 방법:</b> 자신의 이름 아래 숫자를 누르면 오늘 날짜가 찍힙니다.</span>
+                </li>
+                <li class="flex items-start gap-2">
+                    <span class="text-green-500 font-bold">✓</span>
+                    <span><b>삭제 방법:</b> 입력된 날짜를 다시 누르면 삭제할 수 있습니다.</span>
+                </li>
+                <li class="flex items-start gap-2">
+                    <span class="text-rose-500 font-bold">⚠</span>
+                    <span><b>주의:</b> 다른 사람의 칸은 실수로 누르지 않도록 주의해주세요!</span>
+                </li>
             </ul>
+        </div>
+
+        <!-- 푸터 -->
+        <div class="text-center text-pink-400 text-sm py-4">
+            <p>🌺 함께 성장하는 우리, 파이팅! 🌺</p>
         </div>
     </div>
 </body>
 </html>
-
-
