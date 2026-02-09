@@ -54,32 +54,32 @@
                 const filledCount = data.length;
                 
                 const card = document.createElement('div');
-                card.className = "bg-white p-6 rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-all duration-300";
+                card.className = "bg-white/90 backdrop-blur-sm p-6 rounded-[2rem] border border-pink-50 shadow-sm hover:shadow-md transition-all duration-500";
                 
                 card.innerHTML = `
                     <div class="flex items-center justify-between mb-5">
                         <div class="flex items-center gap-3">
                             <span class="font-bold text-lg text-slate-700">${name}</span>
-                            <span class="text-[11px] font-semibold ${filledCount === 15 ? 'bg-blue-100 text-blue-600' : 'bg-slate-100 text-slate-500'} px-2.5 py-1 rounded-md uppercase tracking-wider">
-                                ${filledCount === 15 ? 'Completed' : filledCount + ' / 15'}
+                            <span class="text-[10px] font-bold ${filledCount === 15 ? 'bg-green-100 text-green-600' : 'bg-pink-100 text-pink-400'} px-3 py-1 rounded-full uppercase tracking-tighter">
+                                ${filledCount === 15 ? 'Full Bloom 🌿' : filledCount + ' / 15'}
                             </span>
                         </div>
                     </div>
-                    <div class="w-full bg-slate-100 h-2 rounded-full mb-6 overflow-hidden">
-                        <div class="bg-blue-300 h-full transition-all duration-700 ease-out rounded-full" style="width: ${(filledCount / 15) * 100}%"></div>
+                    <div class="w-full bg-slate-100/50 h-3 rounded-full mb-6 overflow-hidden p-[2px]">
+                        <div class="bg-gradient-to-r from-pink-200 to-green-200 h-full transition-all duration-1000 ease-out rounded-full" style="width: ${(filledCount / 15) * 100}%"></div>
                     </div>
-                    <div class="grid grid-cols-5 gap-2.5">
+                    <div class="grid grid-cols-5 gap-3">
                         ${Array.from({length: 15}).map((_, i) => {
                             const dateValue = data[i] || '';
                             const isFilled = !!dateValue;
                             return `
                                 <div onclick="toggleSlot('${name}', ${i})" 
-                                     class="h-12 flex flex-col items-center justify-center border rounded-lg cursor-pointer transition-all duration-200 text-xs
+                                     class="h-12 flex flex-col items-center justify-center border rounded-2xl cursor-pointer transition-all duration-300 text-xs
                                      ${isFilled 
-                                         ? 'bg-blue-50 border-blue-200 text-blue-500 font-bold' 
-                                         : 'bg-white border-slate-100 text-slate-300 hover:border-blue-200 hover:bg-slate-50'}">
+                                         ? 'bg-pink-50 border-pink-100 text-pink-500 font-bold shadow-inner' 
+                                         : 'bg-white border-slate-50 text-slate-300 hover:border-pink-100 hover:bg-pink-50/20'}">
                                     ${isFilled 
-                                        ? `<span class="text-[10px] font-medium">${dateValue}</span>` 
+                                        ? `<span class="text-[10px] scale-90">${dateValue}</span>` 
                                         : `<span>${i + 1}</span>`}
                                 </div>
                             `;
@@ -111,34 +111,38 @@
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
         body { 
             font-family: 'Inter', 'Pretendard', sans-serif; 
-            background-color: #f8fafc;
-            color: #334155;
+            background-color: #fefaf6; /* 따뜻한 아이보리 미색 */
+            background-image: radial-gradient(#ffe4e6 0.5px, transparent 0.5px); /* 아주 연한 도트 패턴 */
+            background-size: 24px 24px;
+            color: #475569;
         }
     </style>
 </head>
 <body class="p-6 md:p-12">
-    <div class="max-w-4xl mx-auto space-y-10">
-        <div class="text-center space-y-2">
-            <h1 class="text-2xl font-bold text-slate-800 tracking-tight">2026 English Club</h1>
-            <p class="text-slate-400 text-sm">성장 기록을 실시간으로 확인하세요.</p>
+    <div class="max-w-4xl mx-auto space-y-12">
+        <div class="text-center space-y-3">
+            <h1 class="text-3xl font-bold text-slate-800 tracking-tight">🌸 2026 Largo English</h1>
+            <p class="text-pink-400 text-sm font-medium">우리의 영어가 따뜻하게 피어나는 중</p>
         </div>
 
-        <div id="members-container" class="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div class="col-span-full text-center py-20 text-slate-400 text-sm">
-                데이터를 연결 중입니다...
+        <div id="members-container" class="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div class="col-span-full text-center py-20 text-slate-300">
+                봄바람 타고 데이터를 가져오고 있어요...
             </div>
         </div>
 
-        <div class="bg-white border border-slate-100 p-6 rounded-2xl shadow-sm">
-            <h3 class="font-semibold text-sm mb-3 text-slate-700 italic">Guide</h3>
-            <ul class="text-xs text-slate-500 space-y-1.5">
-                <li>• 숫자를 클릭하면 오늘 날짜가 기록됩니다.</li>
-                <li>• 기록된 날짜를 클릭하면 삭제할 수 있습니다.</li>
+        <div class="bg-white/60 border border-pink-50 p-6 rounded-[2rem] shadow-sm">
+            <h3 class="font-semibold text-sm mb-3 text-slate-600 flex items-center gap-2">
+                <span class="w-2 h-2 bg-pink-300 rounded-full animate-pulse"></span> Guide
+            </h3>
+            <ul class="text-[11px] text-slate-500 space-y-2 leading-relaxed">
+                <li>• 빈 칸을 클릭하면 오늘 날짜가 꽃피듯 기록됩니다.</li>
+                <li>• 기록된 날짜를 다시 클릭하면 삭제할 수 있습니다.</li>
             </ul>
         </div>
 
-        <div class="text-center text-slate-300 text-[10px] uppercase tracking-widest">
-            © 2026 Largo English Club
+        <div class="text-center text-slate-300 text-[10px] uppercase tracking-[0.3em]">
+            © 2026 Largo English Club · Bloom with us
         </div>
     </div>
 </body>
